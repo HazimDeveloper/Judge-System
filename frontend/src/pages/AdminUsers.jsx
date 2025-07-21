@@ -11,10 +11,10 @@ const AdminUsers = () => {
     setError('');
     const fetchUsers = async () => {
       try {
-        const res = await api.get('/users/');
+        const res = await api.get('/api/users/');
         setUsers(res.data);
       } catch (err) {
-        setError('Failed to load users.');
+        setError('Could not load users. Please refresh the page.');
         setUsers([]);
       } finally {
         setLoading(false);

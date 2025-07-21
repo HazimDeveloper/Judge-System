@@ -27,6 +27,11 @@ class JudgeListView(generics.ListAPIView):
     serializer_class = JudgeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+class JudgeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Judge.objects.all()
+    serializer_class = JudgeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 class ScoreListCreateView(generics.ListCreateAPIView):
     queryset = Score.objects.all()
     serializer_class = ScoreSerializer
@@ -49,7 +54,25 @@ class ScoreListCreateView(generics.ListCreateAPIView):
         judge = Judge.objects.get(user=user)
         serializer.save(judge=judge)
 
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit it,
+    or admins to do anything.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Admins can do anything.
+        if request.user.role == 'ADMIN':
+            return True
+
+        # Write permissions are only allowed to the owner of the score.
+        return obj.judge.user == request.user
+
 class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Score.objects.all()
     serializer_class = ScoreSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]

@@ -11,10 +11,10 @@ const AdminSubmissions = () => {
     setError('');
     const fetchSubmissions = async () => {
       try {
-        const res = await api.get('/submissions/submissions/');
+        const res = await api.get('/api/submissions/');
         setSubmissions(res.data);
       } catch (err) {
-        setError('Failed to load submissions.');
+        setError('Could not load submissions. Please refresh the page.');
         setSubmissions([]);
       } finally {
         setLoading(false);

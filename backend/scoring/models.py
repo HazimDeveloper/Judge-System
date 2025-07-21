@@ -1,32 +1,37 @@
 from django.db import models
 from users.models import User
-from submissions.models import Submission
+from submissions.models import Submission, Competition
 
 class Rubric(models.Model):
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='rubrics')
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     max_score = models.PositiveIntegerField(default=100)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.competition.name})"
 
 class Judge(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='judge_profile')
     expertise = models.CharField(max_length=255, blank=True)
+    competitions = models.ManyToManyField(Competition, related_name='judges', blank=True)
 
     def __str__(self):
         return self.user.username
 
 class Score(models.Model):
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='scores')
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='scores')
     judge = models.ForeignKey(Judge, on_delete=models.CASCADE, related_name='scores')
     rubric = models.ForeignKey(Rubric, on_delete=models.CASCADE, related_name='scores')
     score = models.PositiveIntegerField()
     comment = models.TextField(blank=True)
     scored_at = models.DateTimeField(auto_now_add=True)
+    evaluation_file = models.FileField(upload_to='judge_evaluations/', blank=True, null=True)
+    evaluation_link = models.URLField(blank=True, null=True)
 
     class Meta:
-        unique_together = ('submission', 'judge', 'rubric')
+        unique_together = ('competition', 'submission', 'judge', 'rubric')
 
     def __str__(self):
         return f"{self.submission.title} - {self.judge.user.username} - {self.rubric.name}: {self.score}"

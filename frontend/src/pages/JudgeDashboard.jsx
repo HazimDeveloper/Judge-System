@@ -1,155 +1,247 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
-import { Container, Table, Button, Spinner, Alert, Modal, Form, Card } from 'react-bootstrap';
+import { Container, Card, Spinner, Alert, Row, Col, Button, Form, Dropdown, Accordion } from 'react-bootstrap';
 
 const JudgeDashboard = () => {
+  const { user, loading: authLoading } = useContext(AuthContext);
+  const [competitions, setCompetitions] = useState([]);
+  const [selectedCompetition, setSelectedCompetition] = useState(null);
   const [submissions, setSubmissions] = useState([]);
+  const [rubrics, setRubrics] = useState([]);
+  const [scores, setScores] = useState({});
+  const [formState, setFormState] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
-  const [score, setScore] = useState('');
-  const [comment, setComment] = useState('');
-  const [rubrics, setRubrics] = useState([]);
-  const [selectedRubric, setSelectedRubric] = useState('');
-  const [scoring, setScoring] = useState(false);
-  const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState({});
 
+  // Fetch competitions assigned to judge
   useEffect(() => {
+    if (authLoading || !user) return;
+    const fetchCompetitions = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        // Try /api/competitions/ endpoint
+        let comps = [];
+        try {
+          const res = await api.get('/api/competitions/');
+          comps = res.data;
+        } catch {
+          // fallback: try /api/scoring/judges/ to get assigned competitions
+          try {
+            const res = await api.get('/api/scoring/judges/');
+            const judge = res.data.find(j => j.user && j.user.username === user.username);
+            comps = judge ? judge.competitions : [];
+          } catch {
+            setError('Could not load competitions.');
+            setLoading(false);
+            return;
+          }
+        }
+        setCompetitions(comps);
+        if (comps.length > 0) {
+          setSelectedCompetition(comps[0]);
+        }
+      } catch {
+        setError('Could not load competitions.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCompetitions();
+  }, [authLoading, user]);
+
+  // Fetch submissions, rubrics, and scores for selected competition
+  useEffect(() => {
+    if (!selectedCompetition) {
+      setSubmissions([]);
+      return;
+    };
+    setLoading(true);
     setError('');
     const fetchData = async () => {
       try {
-        const [subsRes, rubricsRes] = await Promise.all([
-          api.get('/submissions/submissions/'),
-          api.get('/scoring/rubrics/'),
-        ]);
-        setSubmissions(subsRes.data);
-        setRubrics(rubricsRes.data);
-      } catch (err) {
-        setError('Failed to load data.');
-        setSubmissions([]);
+        // Submissions
+        let subs = [];
+        try {
+          const res = await api.get(`/api/submissions/?competition=${selectedCompetition.id || selectedCompetition}`);
+          subs = res.data;
+        } catch {
+          setError('Could not load submissions.');
+          setLoading(false);
+          return;
+        }
+        setSubmissions(subs);
+        // Rubrics
+        let rubs = [];
+        try {
+          const res = await api.get(`/api/scoring/rubrics/?competition=${selectedCompetition.id || selectedCompetition}`);
+          rubs = res.data;
+        } catch {
+          setError('Could not load rubrics.');
+          setLoading(false);
+          return;
+        }
+        setRubrics(rubs);
+        // Scores
+        let scoresArr = [];
+        try {
+          const res = await api.get('/api/scoring/scores/');
+          scoresArr = res.data.filter(s => s.judge_name === user.username);
+        } catch {
+          // If scores endpoint fails, just show empty
+          scoresArr = [];
+        }
+        const scoresMap = scoresArr.reduce((acc, score) => {
+          const key = `${score.submission}_${score.rubric}`;
+          acc[key] = score;
+          return acc;
+        }, {});
+        setScores(scoresMap);
+        // Prefill form state
+        const newFormState = {};
+        subs.forEach(sub => {
+          rubs.forEach(rubric => {
+            const key = `${sub.id}_${rubric.id}`;
+            const existing = scoresMap[key];
+            newFormState[key] = {
+              score: existing ? existing.score : 1,
+              comment: existing ? existing.comment : '',
+            };
+          });
+        });
+        setFormState(newFormState);
+      } catch {
+        setError('Could not load data for this competition.');
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [selectedCompetition, user]);
 
-  const handleScore = (submission) => {
-    setSelectedSubmission(submission);
-    setShowModal(true);
-    setScore('');
-    setComment('');
-    setSelectedRubric(rubrics[0]?.id || '');
-    setSuccess('');
-    setError('');
+  const handleChange = (subId, rubricId, field, value) => {
+    const key = `${subId}_${rubricId}`;
+    setFormState(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setError('');
-    setSuccess('');
-  };
-
-  const handleSubmitScore = async (e) => {
-    e.preventDefault();
-    setScoring(true);
-    setSuccess('');
-    setError('');
+  const handleSubmission = async (subId) => {
+    setSubmitting(prev => ({ ...prev, [subId]: true }));
     try {
-      await api.post('/scoring/scores/', {
-        submission: selectedSubmission.id,
-        rubric: selectedRubric,
-        score: score,
-        comment: comment,
-      });
-      setSuccess('Score submitted!');
-      setShowModal(false);
-    } catch (err) {
-      setError('Failed to submit score.');
-    } finally {
-      setScoring(false);
+      const rubricIds = rubrics.map(r => r.id);
+      for (const rubricId of rubricIds) {
+        const key = `${subId}_${rubricId}`;
+        const state = formState[key];
+        const existingScore = scores[key];
+        const payload = {
+          competition_id: selectedCompetition.id || selectedCompetition,
+          submission: subId,
+          rubric: rubricId,
+          score: state.score,
+          comment: state.comment,
+        };
+        if (existingScore) {
+          await api.put(`/api/scoring/scores/${existingScore.id}/`, payload);
+        } else {
+          await api.post('/api/scoring/scores/', payload);
+        }
+      }
+      // Refresh scores
+      let scoresArr = [];
+      try {
+        const res = await api.get('/api/scoring/scores/');
+        scoresArr = res.data.filter(s => s.judge_name === user.username);
+      } catch {
+        scoresArr = [];
+      }
+      const scoresMap = scoresArr.reduce((acc, score) => {
+        const key = `${score.submission}_${score.rubric}`;
+        acc[key] = score;
+        return acc;
+      }, {});
+      setScores(scoresMap);
+    } catch {
+      alert('Failed to save evaluation.');
     }
+    setSubmitting(prev => ({ ...prev, [subId]: false }));
   };
+
+  if (authLoading) return <div className="text-center my-5"><Spinner animation="border" /></div>;
+  if (!user) return <Alert variant="danger" className="mt-4">You are not logged in.</Alert>;
 
   return (
     <Container className="py-4">
-      <Card className="shadow border-0 mx-auto" style={{ maxWidth: 1100 }}>
-        <Card.Body>
-          <h2 className="fw-bold mb-4 text-center text-primary">Judge Dashboard</h2>
-          {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
-          {loading ? (
-            <div className="text-center my-5"><Spinner animation="border" /></div>
-          ) : (
-            <Table striped bordered hover responsive className="mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Participant</th>
-                  <th>Title</th>
-                  <th>Description</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center text-muted">No submissions found.</td></tr>
-                ) : submissions.map(sub => (
-                  <tr key={sub.id}>
-                    <td>{sub.id}</td>
-                    <td>{sub.participant?.user}</td>
-                    <td>{sub.title}</td>
-                    <td>{sub.description}</td>
-                    <td>{sub.status}</td>
-                    <td>
-                      <Button variant="success" size="lg" className="w-100" onClick={() => handleScore(sub)}>
-                        Score
+      <h2 className="mb-4">Judge Scoring</h2>
+      {competitions.length > 0 && (
+        <Dropdown className="mb-4">
+          <Dropdown.Toggle variant="primary" id="dropdown-basic">
+            {selectedCompetition ? selectedCompetition.name || 'Select Competition' : 'Select a Competition'}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            {competitions.map(c => (
+              <Dropdown.Item key={c.id || c} onClick={() => setSelectedCompetition(c)}>
+                {c.name || c}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown>
+      )}
+      {loading && <div className="text-center my-5"><Spinner animation="border" /></div>}
+      {error && <Alert variant="danger">{error}</Alert>}
+      {selectedCompetition && !loading && !error && (
+        <Accordion>
+          {submissions.map(sub => (
+            <Accordion.Item eventKey={String(sub.id)} key={sub.id}>
+              <Accordion.Header>{sub.title}</Accordion.Header>
+              <Accordion.Body>
+                <Card>
+                  <Card.Body>
+                    <p>{sub.description}</p>
+                    {sub.file && <a href={sub.file} target="_blank" rel="noopener noreferrer">Download File</a>}
+                    {sub.link && <a href={sub.link} target="_blank" rel="noopener noreferrer" className="ms-2">View Link</a>}
+                    <hr />
+                    <Row>
+                      {rubrics.map(rubric => {
+                        const key = `${sub.id}_${rubric.id}`;
+                        const state = formState[key] || { score: 1, comment: '' };
+                        return (
+                          <Col md={6} key={rubric.id} className="mb-3">
+                            <h6>{rubric.name}</h6>
+                            <Form>
+                              <Form.Group>
+                                <Form.Label>Score (1-5)</Form.Label>
+                                <Form.Select value={state.score} onChange={e => handleChange(sub.id, rubric.id, 'score', Number(e.target.value))}>
+                                  {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                                </Form.Select>
+                              </Form.Group>
+                              <Form.Group>
+                                <Form.Label>Comment</Form.Label>
+                                <Form.Control as="textarea" rows={2} value={state.comment} onChange={e => handleChange(sub.id, rubric.id, 'comment', e.target.value)} />
+                              </Form.Group>
+                              <Button variant="outline-primary" size="sm" className="mt-2" disabled={submitting[key]} onClick={() => handleSubmission(sub.id)}>
+                                {scores[key] ? 'Update' : 'Submit'}
+                              </Button>
+                            </Form>
+                          </Col>
+                        );
+                      })}
+                    </Row>
+                    <hr />
+                    <div className="d-flex justify-content-end">
+                      <Button variant="primary" disabled={submitting[sub.id]} onClick={() => handleSubmission(sub.id)}>
+                        {submitting[sub.id] ? 'Saving...' : 'Save Scores'}
                       </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
-        </Card.Body>
-      </Card>
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Score Submission</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmitScore}>
-          <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>Rubric</Form.Label>
-              <Form.Select value={selectedRubric} onChange={e => setSelectedRubric(e.target.value)} required size="lg">
-                {rubrics.map(rubric => (
-                  <option key={rubric.id} value={rubric.id}>{rubric.name}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Score</Form.Label>
-              <Form.Control type="number" min="0" max="100" value={score} onChange={e => setScore(e.target.value)} required size="lg" />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Comment</Form.Label>
-              <Form.Control as="textarea" rows={3} value={comment} onChange={e => setComment(e.target.value)} size="lg" />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseModal} size="lg">
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit" disabled={scoring} size="lg">
-              {scoring ? 'Submitting...' : 'Submit Score'}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
-      {success && <Alert variant="success" className="mt-3">{success}</Alert>}
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Accordion.Body>
+            </Accordion.Item>
+          ))}
+        </Accordion>
+      )}
     </Container>
   );
 };
 
-export default JudgeDashboard; 
+export default JudgeDashboard;

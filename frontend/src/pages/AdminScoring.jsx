@@ -11,10 +11,11 @@ const AdminScoring = () => {
     setError('');
     const fetchScores = async () => {
       try {
-        const res = await api.get('/scoring/scores/');
+        const res = await api.get('/api/scoring/scores/');
         setScores(res.data);
+        setLoading(false);
       } catch (err) {
-        setError('Failed to load scores.');
+        setError('Could not load scores. Please refresh the page.');
         setScores([]);
       } finally {
         setLoading(false);
@@ -35,27 +36,33 @@ const AdminScoring = () => {
             <Table striped bordered hover responsive className="mb-0">
               <thead className="table-light">
                 <tr>
-                  <th>ID</th>
-                  <th>Submission</th>
+                  <th>Participant</th>
                   <th>Judge</th>
                   <th>Rubric</th>
                   <th>Score</th>
                   <th>Comment</th>
-                  <th>Scored At</th>
+                  <th>File/Link</th>
                 </tr>
               </thead>
               <tbody>
                 {scores.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center text-muted">No scores found.</td></tr>
+                  <tr><td colSpan={6} className="text-center text-muted">No scores found.</td></tr>
                 ) : scores.map(score => (
                   <tr key={score.id}>
-                    <td>{score.id}</td>
-                    <td>{score.submission}</td>
-                    <td>{score.judge}</td>
-                    <td>{score.rubric}</td>
+                    <td>{score.participant_name}</td>
+                    <td>{score.judge_name}</td>
+                    <td>{score.rubric_name}</td>
                     <td>{score.score}</td>
                     <td>{score.comment}</td>
-                    <td>{new Date(score.scored_at).toLocaleString()}</td>
+                    <td>
+                      {score.evaluation_file && (
+                        <a href={score.evaluation_file} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-primary me-2">PDF</a>
+                      )}
+                      {score.evaluation_link && (
+                        <a href={score.evaluation_link} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-success">Link</a>
+                      )}
+                      {!(score.evaluation_file || score.evaluation_link) && <span className="text-muted">-</span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -67,4 +74,4 @@ const AdminScoring = () => {
   );
 };
 
-export default AdminScoring; 
+export default AdminScoring;
