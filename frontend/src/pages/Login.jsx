@@ -3,354 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../services/auth';
 import { AuthContext } from '../contexts/AuthContext';
 
-// Embedded CSS styles
-const styles = {
-  authPage: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    background: 'linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)'
-  },
-  
-  authBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: -1
-  },
-  
-  authGrid: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundImage: `
-      linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px)
-    `,
-    backgroundSize: '40px 40px',
-    animation: 'gridFloat 15s ease-in-out infinite'
-  },
-  
-  authContainer: {
-    background: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '1.5rem',
-    boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)',
-    border: '1px solid #e2e8f0',
-    overflow: 'hidden',
-    width: '100%',
-    maxWidth: '900px',
-    margin: '1.5rem',
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    minHeight: '600px'
-  },
-  
-  authContent: {
-    padding: '3rem',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center'
-  },
-  
-  authHeader: {
-    textAlign: 'center',
-    marginBottom: '2rem'
-  },
-  
-  authLogo: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0.75rem',
-    marginBottom: '1.5rem'
-  },
-  
-  logoIcon: {
-    fontSize: '2rem',
-    background: 'linear-gradient(135deg, #34d399, #059669)',
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent'
-  },
-  
-  logoText: {
-    fontSize: '1.5rem',
-    fontWeight: 800,
-    background: 'linear-gradient(135deg, #1e293b, #475569)',
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent'
-  },
-  
-  authTitle: {
-    fontSize: '2rem',
-    fontWeight: 800,
-    color: '#1e293b',
-    marginBottom: '0.5rem'
-  },
-  
-  authSubtitle: {
-    color: '#475569',
-    fontSize: '1rem'
-  },
-  
-  authForm: {
-    marginBottom: '1.5rem'
-  },
-  
-  formGroup: {
-    marginBottom: '1.5rem'
-  },
-  
-  formLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    marginBottom: '0.75rem',
-    fontWeight: 600,
-    color: '#334155',
-    fontSize: '0.875rem'
-  },
-  
-  labelIcon: {
-    fontSize: '1rem'
-  },
-  
-  formControl: {
-    width: '100%',
-    padding: '1rem',
-    border: '2px solid #cbd5e1',
-    borderRadius: '0.75rem',
-    background: 'rgba(255, 255, 255, 0.8)',
-    backdropFilter: 'blur(10px)',
-    fontSize: '1rem',
-    transition: 'all 0.15s ease-out',
-    fontFamily: 'inherit'
-  },
-  
-  formControlFocus: {
-    outline: 'none',
-    borderColor: '#34d399',
-    background: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: '0 0 0 4px #dbeafe'
-  },
-  
-  btn: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0.5rem',
-    padding: '1rem 2rem',
-    borderRadius: '0.75rem',
-    fontWeight: 600,
-    fontSize: '1rem',
-    textDecoration: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'all 0.15s ease-out',
-    position: 'relative',
-    overflow: 'hidden'
-  },
-  
-  btnPrimary: {
-    background: 'linear-gradient(135deg, #34d399, #059669)',
-    color: 'white',
-    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-    width: '100%'
-  },
-  
-  authSubmit: {
-    marginTop: '1rem'
-  },
-  
-  spinner: {
-    width: '16px',
-    height: '16px',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    borderTop: '2px solid white',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    marginRight: '0.5rem'
-  },
-  
-  authFooter: {
-    textAlign: 'center'
-  },
-  
-  authLinkText: {
-    color: '#475569',
-    fontSize: '0.875rem'
-  },
-  
-  authLink: {
-    color: '#2563eb',
-    textDecoration: 'none',
-    fontWeight: 600,
-    transition: 'all 0.15s ease-out'
-  },
-  
-  authVisual: {
-    background: 'linear-gradient(135deg, #34d399, #059669)',
-    color: 'white',
-    padding: '3rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden'
-  },
-  
-  visualContent: {
-    textAlign: 'center',
-    zIndex: 1,
-    position: 'relative'
-  },
-  
-  visualIcon: {
-    fontSize: '4rem',
-    marginBottom: '1.5rem',
-    display: 'block',
-    animation: 'bounce 2s infinite'
-  },
-  
-  visualTitle: {
-    fontSize: '2rem',
-    fontWeight: 800,
-    marginBottom: '1rem'
-  },
-  
-  visualDescription: {
-    fontSize: '1.125rem',
-    opacity: 0.9,
-    lineHeight: 1.6,
-    marginBottom: '2rem',
-    maxWidth: '300px'
-  },
-  
-  visualFeatures: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem'
-  },
-  
-  featureItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    fontWeight: 500
-  },
-  
-  featureIcon: {
-    fontSize: '1.25rem'
-  },
-  
-  alert: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '1rem 1.5rem',
-    borderRadius: '0.75rem',
-    marginBottom: '1.5rem',
-    fontWeight: 500
-  },
-  
-  alertIcon: {
-    fontSize: '1.25rem'
-  },
-  
-  alertDanger: {
-    background: 'rgba(239, 68, 68, 0.1)',
-    color: '#991b1b',
-    border: '1px solid rgba(239, 68, 68, 0.3)'
-  }
-};
-
-// CSS keyframes and additional styles
-const cssStyles = `
-  @keyframes gridFloat {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(20px, 20px); }
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
-  }
-  
-  .auth-visual::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
-    animation: patternMove 20s linear infinite;
-  }
-  
-  @keyframes patternMove {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(60px, 60px); }
-  }
-  
-  .btn-primary:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  }
-  
-  .auth-link:hover {
-    color: #1d4ed8;
-    text-decoration: underline;
-  }
-  
-  @media (max-width: 1024px) {
-    .auth-container {
-      grid-template-columns: 1fr;
-      max-width: 500px;
-    }
-    
-    .auth-visual {
-      display: none;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .auth-content {
-      padding: 2rem;
-    }
-    
-    .auth-title {
-      font-size: 1.75rem;
-    }
-    
-    .auth-container {
-      margin: 1rem;
-      border-radius: 1rem;
-    }
-  }
-`;
-
-const Login = () => {
+const ProfessionalLogin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { setUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -364,27 +23,438 @@ const Login = () => {
       setUser(await (await import('../services/auth')).getCurrentUser());
       navigate('/dashboard');
     } catch (err) {
-      setError('Login failed. Please check your username and password, then try again.');
+      setError('Invalid credentials. Please check your username and password.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFocus = (field) => {
-    setFocusedField(field);
+  const styles = {
+    authPage: {
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%)',
+      padding: '20px',
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    
+    authBackground: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 0
+    },
+    
+    backgroundPattern: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundImage: `
+        linear-gradient(rgba(52, 211, 153, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(52, 211, 153, 0.05) 1px, transparent 1px)
+      `,
+      backgroundSize: '50px 50px',
+      animation: 'backgroundFloat 20s ease-in-out infinite'
+    },
+    
+    floatingShapes: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      overflow: 'hidden',
+      zIndex: 1
+    },
+    
+    authContainer: {
+      background: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: '32px',
+      boxShadow: '0 40px 80px rgba(0, 0, 0, 0.12)',
+      border: '1px solid rgba(255, 255, 255, 0.8)',
+      overflow: 'hidden',
+      width: '100%',
+      maxWidth: '1100px',
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      minHeight: '700px',
+      position: 'relative',
+      zIndex: 2,
+      animation: 'slideInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+    },
+    
+    authContent: {
+      padding: '60px 50px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center'
+    },
+    
+    authHeader: {
+      textAlign: 'center',
+      marginBottom: '40px'
+    },
+    
+    authLogo: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '12px',
+      marginBottom: '32px'
+    },
+    
+    logoIcon: {
+      fontSize: '36px',
+      background: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
+      backgroundClip: 'text',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      filter: 'drop-shadow(0 4px 8px rgba(52, 211, 153, 0.2))',
+      animation: 'gentle-bounce 3s ease-in-out infinite'
+    },
+    
+    logoText: {
+      fontSize: '28px',
+      fontWeight: '900',
+      background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+      backgroundClip: 'text',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      letterSpacing: '-1px'
+    },
+    
+    authTitle: {
+      fontSize: '32px',
+      fontWeight: '800',
+      color: '#1e293b',
+      marginBottom: '12px',
+      letterSpacing: '-0.5px'
+    },
+    
+    authSubtitle: {
+      color: '#64748b',
+      fontSize: '16px',
+      lineHeight: '1.5'
+    },
+    
+    authForm: {
+      marginBottom: '32px'
+    },
+    
+    formGroup: {
+      marginBottom: '24px',
+      position: 'relative'
+    },
+    
+    formLabel: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      marginBottom: '8px',
+      fontWeight: '600',
+      color: '#374151',
+      fontSize: '14px',
+      transition: 'color 0.2s ease'
+    },
+    
+    labelIcon: {
+      fontSize: '16px',
+      opacity: 0.8
+    },
+    
+    inputContainer: {
+      position: 'relative'
+    },
+    
+    formControl: {
+      width: '100%',
+      padding: '16px 20px',
+      borderRadius: '16px',
+      border: '2px solid #e5e7eb',
+      background: 'rgba(255, 255, 255, 0.8)',
+      backdropFilter: 'blur(10px)',
+      fontSize: '16px',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      fontFamily: 'inherit',
+      outline: 'none'
+    },
+    
+    formControlFocused: {
+      borderColor: '#34d399',
+      background: 'rgba(255, 255, 255, 0.95)',
+      boxShadow: '0 0 0 4px rgba(52, 211, 153, 0.1)',
+      transform: 'translateY(-2px)'
+    },
+    
+    passwordToggle: {
+      position: 'absolute',
+      right: '16px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      background: 'none',
+      border: 'none',
+      color: '#64748b',
+      cursor: 'pointer',
+      fontSize: '18px',
+      padding: '4px',
+      borderRadius: '6px',
+      transition: 'all 0.2s ease'
+    },
+    
+    btn: {
+      width: '100%',
+      padding: '18px 24px',
+      borderRadius: '16px',
+      fontSize: '16px',
+      fontWeight: '600',
+      border: 'none',
+      cursor: 'pointer',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    
+    btnPrimary: {
+      background: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
+      color: 'white',
+      boxShadow: '0 8px 24px rgba(52, 211, 153, 0.3)',
+      marginTop: '8px'
+    },
+    
+    btnLoading: {
+      opacity: 0.8,
+      cursor: 'not-allowed'
+    },
+    
+    spinner: {
+      width: '20px',
+      height: '20px',
+      border: '2px solid rgba(255, 255, 255, 0.3)',
+      borderTop: '2px solid white',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    },
+    
+    authFooter: {
+      textAlign: 'center'
+    },
+    
+    footerText: {
+      color: '#64748b',
+      fontSize: '14px',
+      marginBottom: '16px'
+    },
+    
+    authLink: {
+      color: '#34d399',
+      textDecoration: 'none',
+      fontWeight: '600',
+      transition: 'all 0.2s ease',
+      position: 'relative'
+    },
+    
+    socialLogin: {
+      marginTop: '24px',
+      paddingTop: '24px',
+      borderTop: '1px solid #e5e7eb'
+    },
+    
+    socialTitle: {
+      textAlign: 'center',
+      color: '#64748b',
+      fontSize: '14px',
+      marginBottom: '16px'
+    },
+    
+    socialButtons: {
+      display: 'flex',
+      gap: '12px'
+    },
+    
+    socialBtn: {
+      flex: 1,
+      padding: '12px',
+      borderRadius: '12px',
+      border: '1px solid #e5e7eb',
+      background: 'white',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '14px',
+      fontWeight: '500'
+    },
+    
+    authVisual: {
+      background: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
+      color: 'white',
+      padding: '60px 40px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    
+    visualPattern: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat',
+      animation: 'patternMove 25s linear infinite'
+    },
+    
+    visualContent: {
+      textAlign: 'center',
+      zIndex: 2,
+      position: 'relative'
+    },
+    
+    visualIcon: {
+      fontSize: '80px',
+      marginBottom: '32px',
+      display: 'block',
+      animation: 'float 4s ease-in-out infinite',
+      filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.2))'
+    },
+    
+    visualTitle: {
+      fontSize: '32px',
+      fontWeight: '800',
+      marginBottom: '16px',
+      letterSpacing: '-0.5px'
+    },
+    
+    visualDescription: {
+      fontSize: '18px',
+      opacity: 0.9,
+      lineHeight: '1.6',
+      marginBottom: '40px',
+      maxWidth: '350px'
+    },
+    
+    visualFeatures: {
+      display: 'grid',
+      gridTemplateColumns: '1fr',
+      gap: '16px'
+    },
+    
+    featureItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      fontSize: '16px',
+      fontWeight: '500'
+    },
+    
+    featureIcon: {
+      fontSize: '20px'
+    },
+    
+    alert: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      padding: '16px 20px',
+      borderRadius: '12px',
+      marginBottom: '24px',
+      fontSize: '14px',
+      fontWeight: '500'
+    },
+    
+    alertDanger: {
+      background: 'rgba(239, 68, 68, 0.1)',
+      color: '#dc2626',
+      border: '1px solid rgba(239, 68, 68, 0.2)'
+    },
+    
+    alertIcon: {
+      fontSize: '18px'
+    }
   };
 
-  const handleBlur = () => {
-    setFocusedField('');
-  };
+  const keyframes = `
+    @keyframes backgroundFloat {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(25px, 25px); }
+    }
+    
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(60px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    @keyframes gentle-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes patternMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(60px, 60px); }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+    }
+  `;
 
   return (
     <>
-      <style>{cssStyles}</style>
+      <style>{keyframes}</style>
       
       <div style={styles.authPage}>
         <div style={styles.authBackground}>
-          <div style={styles.authGrid}></div>
+          <div style={styles.backgroundPattern}></div>
+          <div style={styles.floatingShapes}>
+            <div style={{
+              position: 'absolute',
+              top: '15%',
+              left: '8%',
+              width: '120px',
+              height: '120px',
+              background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(16, 185, 129, 0.1))',
+              borderRadius: '50%',
+              animation: 'float 8s ease-in-out infinite'
+            }}></div>
+            <div style={{
+              position: 'absolute',
+              bottom: '20%',
+              right: '15%',
+              width: '80px',
+              height: '80px',
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1))',
+              borderRadius: '50%',
+              animation: 'float 6s ease-in-out infinite 2s'
+            }}></div>
+          </div>
         </div>
         
         <div style={styles.authContainer}>
@@ -395,65 +465,119 @@ const Login = () => {
                 <span style={styles.logoText}>JudgeFlow</span>
               </div>
               <h1 style={styles.authTitle}>Welcome Back</h1>
-              <p style={styles.authSubtitle}>Sign in to access your dashboard</p>
+              <p style={styles.authSubtitle}>
+                Sign in to your account to access your dashboard and continue managing competitions
+              </p>
             </div>
 
             <form style={styles.authForm} onSubmit={handleSubmit}>
               {error && (
-                <div style={{ ...styles.alert, ...styles.alertDanger }}>
+                <div style={{...styles.alert, ...styles.alertDanger}}>
                   <span style={styles.alertIcon}>⚠️</span>
                   {error}
                 </div>
               )}
 
               <div style={styles.formGroup}>
-                <label htmlFor="username" style={styles.formLabel}>
+                <label 
+                  htmlFor="username" 
+                  style={{
+                    ...styles.formLabel,
+                    color: focusedField === 'username' ? '#34d399' : '#374151'
+                  }}
+                >
                   <span style={styles.labelIcon}>👤</span>
                   Username
                 </label>
-                <input
-                  id="username"
-                  type="text"
-                  style={{
-                    ...styles.formControl,
-                    ...(focusedField === 'username' ? styles.formControlFocus : {})
-                  }}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onFocus={() => handleFocus('username')}
-                  onBlur={handleBlur}
-                  required
-                  autoFocus
-                  placeholder="Enter your username"
-                />
+                <div style={styles.inputContainer}>
+                  <input
+                    id="username"
+                    type="text"
+                    style={{
+                      ...styles.formControl,
+                      ...(focusedField === 'username' ? styles.formControlFocused : {})
+                    }}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    onFocus={() => setFocusedField('username')}
+                    onBlur={() => setFocusedField('')}
+                    required
+                    autoFocus
+                    placeholder="Enter your username"
+                  />
+                </div>
               </div>
 
               <div style={styles.formGroup}>
-                <label htmlFor="password" style={styles.formLabel}>
+                <label 
+                  htmlFor="password" 
+                  style={{
+                    ...styles.formLabel,
+                    color: focusedField === 'password' ? '#34d399' : '#374151'
+                  }}
+                >
                   <span style={styles.labelIcon}>🔒</span>
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  style={{
-                    ...styles.formControl,
-                    ...(focusedField === 'password' ? styles.formControlFocus : {})
-                  }}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => handleFocus('password')}
-                  onBlur={handleBlur}
-                  required
-                  placeholder="Enter your password"
-                />
+                <div style={styles.inputContainer}>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    style={{
+                      ...styles.formControl,
+                      ...(focusedField === 'password' ? styles.formControlFocused : {}),
+                      paddingRight: '60px'
+                    }}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField('')}
+                    required
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.passwordToggle,
+                      color: showPassword ? '#34d399' : '#64748b'
+                    }}
+                    onClick={() => setShowPassword(!showPassword)}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#f3f4f6';
+                      e.target.style.color = '#34d399';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'none';
+                      e.target.style.color = showPassword ? '#34d399' : '#64748b';
+                    }}
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
               </div>
 
               <button 
                 type="submit" 
-                style={{ ...styles.btn, ...styles.btnPrimary, ...styles.authSubmit }}
-                className="btn-primary"
+                style={{
+                  ...styles.btn,
+                  ...styles.btnPrimary,
+                  ...(loading ? styles.btnLoading : {})
+                }}
                 disabled={loading}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.target.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 12px 32px rgba(52, 211, 153, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.target.style.background = 'linear-gradient(135deg, #34d399 0%, #10b981 100%)';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 8px 24px rgba(52, 211, 153, 0.3)';
+                  }
+                }}
               >
                 {loading ? (
                   <>
@@ -462,7 +586,7 @@ const Login = () => {
                   </>
                 ) : (
                   <>
-                    <span>🚀</span>
+                    <span style={{ fontSize: '18px' }}>🚀</span>
                     Sign In
                   </>
                 )}
@@ -470,34 +594,82 @@ const Login = () => {
             </form>
 
             <div style={styles.authFooter}>
-              <p style={styles.authLinkText}>
+              <p style={styles.footerText}>
                 Don't have an account?{' '}
-                <Link to="/register" style={styles.authLink} className="auth-link">
-                  Create one here
+                <Link 
+                  to="/register" 
+                  style={styles.authLink}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = '#10b981';
+                    e.target.style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = '#34d399';
+                    e.target.style.textDecoration = 'none';
+                  }}
+                >
+                  Create account
                 </Link>
               </p>
+              
+              <div style={styles.socialLogin}>
+                <p style={styles.socialTitle}>Or continue with</p>
+                <div style={styles.socialButtons}>
+                  <button 
+                    style={styles.socialBtn}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#f8fafc';
+                      e.target.style.borderColor = '#34d399';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'white';
+                      e.target.style.borderColor = '#e5e7eb';
+                    }}
+                  >
+                    🌐 Google
+                  </button>
+                  <button 
+                    style={styles.socialBtn}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#f8fafc';
+                      e.target.style.borderColor = '#34d399';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'white';
+                      e.target.style.borderColor = '#e5e7eb';
+                    }}
+                  >
+                    💼 Microsoft
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={styles.authVisual} className="auth-visual">
+          <div style={styles.authVisual}>
+            <div style={styles.visualPattern}></div>
             <div style={styles.visualContent}>
               <div style={styles.visualIcon}>🎯</div>
-              <h3 style={styles.visualTitle}>Streamlined Judging</h3>
+              <h3 style={styles.visualTitle}>Professional Platform</h3>
               <p style={styles.visualDescription}>
-                Access your personalized dashboard with real-time analytics and seamless workflow management.
+                Access your personalized dashboard with advanced analytics, real-time collaboration, and enterprise-grade security.
               </p>
               <div style={styles.visualFeatures}>
                 <div style={styles.featureItem}>
                   <span style={styles.featureIcon}>⚡</span>
-                  <span>Real-time Updates</span>
+                  <span>Lightning Fast Performance</span>
                 </div>
                 <div style={styles.featureItem}>
                   <span style={styles.featureIcon}>🔐</span>
-                  <span>Secure Access</span>
+                  <span>Bank-Level Security</span>
                 </div>
                 <div style={styles.featureItem}>
                   <span style={styles.featureIcon}>📊</span>
                   <span>Advanced Analytics</span>
+                </div>
+                <div style={styles.featureItem}>
+                  <span style={styles.featureIcon}>🌐</span>
+                  <span>Global Collaboration</span>
                 </div>
               </div>
             </div>
@@ -508,4 +680,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ProfessionalLogin;
