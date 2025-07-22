@@ -545,7 +545,7 @@ const ProfessionalHome = () => {
                     }}
                   >
                     <span style={{ fontSize: '20px' }}>🚀</span>
-                    Start Free Trial
+                    Start Now
                   </Link>
                   <Link 
                     to="/login" 

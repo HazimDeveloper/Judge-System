@@ -35,3 +35,18 @@ class Score(models.Model):
 
     def __str__(self):
         return f"{self.submission.title} - {self.judge.user.username} - {self.rubric.name}: {self.score}"
+
+class RubricVersion(models.Model):
+    name = models.CharField(max_length=255)
+    competitions = models.ManyToManyField(Competition, related_name='rubric_versions')
+
+    def __str__(self):
+        return self.name
+
+class RubricCriterion(models.Model):
+    rubric = models.ForeignKey(RubricVersion, related_name='criteria', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    weight = models.PositiveIntegerField()  # e.g., 50 for 50%
+
+    def __str__(self):
+        return f"{self.name} ({self.weight}%)"

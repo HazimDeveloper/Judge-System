@@ -2,6 +2,18 @@ import React, { useEffect, useState, useContext } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const ProfessionalAdminDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -37,6 +49,31 @@ const ProfessionalAdminDashboard = () => {
     } catch (err) {
       alert('Failed to export scores.');
     }
+  };
+
+  // Chart data for submissions per competition
+  const competitionLabels = stats?.competition_submissions?.map(c => c.competition) || [];
+  const competitionCounts = stats?.competition_submissions?.map(c => c.count) || [];
+  const competitionChartData = {
+    labels: competitionLabels,
+    datasets: [
+      {
+        label: 'Submissions',
+        data: competitionCounts,
+        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+        borderRadius: 6,
+      },
+    ],
+  };
+  const competitionChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Submissions per Competition' },
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } },
+    },
   };
 
   const styles = {
@@ -593,6 +630,28 @@ const ProfessionalAdminDashboard = () => {
             color="linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
             onClick={() => navigate('/admin/competitions')}
           />
+        </div>
+
+        {/* Submissions per Competition Chart */}
+        <div style={{ margin: '40px 0' }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '32px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.06)'
+          }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', marginBottom: '16px' }}>
+              Submissions per Competition
+            </h3>
+            {competitionLabels.length > 0 ? (
+              <Bar data={competitionChartData} options={competitionChartOptions} height={120} />
+            ) : (
+              <div style={{ color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: 32 }}>
+                No competition submission data available.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Charts Section */}

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Rubric, Judge, Score
+from .models import Rubric, Judge, Score, RubricVersion, RubricCriterion
 from submissions.serializers import CompetitionSerializer
 from submissions.models import Competition
 from users.serializers import UserSerializer
@@ -46,4 +46,32 @@ class ScoreSerializer(serializers.ModelSerializer):
         return obj.submission.participant.user.username if obj.submission and obj.submission.participant and obj.submission.participant.user else ''
 
     def get_judge_name(self, obj):
-        return obj.judge.user.username if obj.judge and obj.judge.user else '' 
+        return obj.judge.user.username if obj.judge and obj.judge.user else ''
+
+class RubricCriterionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RubricCriterion
+        fields = ['id', 'name', 'weight']
+
+class RubricVersionSerializer(serializers.ModelSerializer):
+    criteria = RubricCriterionSerializer(many=True)
+    competitions = serializers.PrimaryKeyRelatedField(queryset=Competition.objects.all(), many=True)
+
+    class Meta:
+        model = RubricVersion
+        fields = ['id', 'name', 'competitions', 'criteria']
+
+    def validate_criteria(self, value):
+        total_weight = sum(c['weight'] for c in value)
+        if total_weight != 100:
+            raise serializers.ValidationError("Total weight must be 100%")
+        return value
+
+    def create(self, validated_data):
+        criteria_data = validated_data.pop('criteria')
+        competitions = validated_data.pop('competitions')
+        rubric = RubricVersion.objects.create(**validated_data)
+        rubric.competitions.set(competitions)
+        for c in criteria_data:
+            RubricCriterion.objects.create(rubric=rubric, **c)
+        return rubric 

@@ -613,34 +613,8 @@ const ProfessionalLogin = () => {
               </p>
               
               <div style={styles.socialLogin}>
-                <p style={styles.socialTitle}>Or continue with</p>
                 <div style={styles.socialButtons}>
-                  <button 
-                    style={styles.socialBtn}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#f8fafc';
-                      e.target.style.borderColor = '#34d399';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'white';
-                      e.target.style.borderColor = '#e5e7eb';
-                    }}
-                  >
-                    🌐 Google
-                  </button>
-                  <button 
-                    style={styles.socialBtn}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#f8fafc';
-                      e.target.style.borderColor = '#34d399';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'white';
-                      e.target.style.borderColor = '#e5e7eb';
-                    }}
-                  >
-                    💼 Microsoft
-                  </button>
+                 
                 </div>
               </div>
             </div>

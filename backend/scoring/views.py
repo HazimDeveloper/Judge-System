@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions
-from .models import Rubric, Judge, Score
-from .serializers import RubricSerializer, JudgeSerializer, ScoreSerializer
+from .models import Rubric, Judge, Score, RubricVersion
+from .serializers import RubricSerializer, JudgeSerializer, ScoreSerializer, RubricVersionSerializer
 from rest_framework.exceptions import PermissionDenied
 
 # Create your views here.
@@ -53,6 +53,11 @@ class ScoreListCreateView(generics.ListCreateAPIView):
             raise PermissionDenied('Only judges can score submissions.')
         judge = Judge.objects.get(user=user)
         serializer.save(judge=judge)
+
+class RubricVersionListCreateView(generics.ListCreateAPIView):
+    queryset = RubricVersion.objects.all()
+    serializer_class = RubricVersionSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
