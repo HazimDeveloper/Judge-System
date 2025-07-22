@@ -9,6 +9,8 @@ from rest_framework import status
 from django.db import models
 from django.http import HttpResponse
 import csv
+from django.db.models.functions import TruncWeek
+from datetime import datetime, timedelta
 
 # Create your views here.
 
@@ -27,12 +29,29 @@ class DashboardStatsView(APIView):
         avg_score = Score.objects.all().aggregate(avg=models.Avg('score'))['avg']
         judge_activity = Score.objects.values('judge__user__username').annotate(count=models.Count('id')).order_by('-count')
 
+        # Weekly submissions for the last 8 weeks
+        today = datetime.today()
+        eight_weeks_ago = today - timedelta(weeks=8)
+        weekly_submissions = (
+            Submission.objects
+            .filter(submitted_at__gte=eight_weeks_ago)
+            .annotate(week=TruncWeek('submitted_at'))
+            .values('week')
+            .annotate(count=models.Count('id'))
+            .order_by('week')
+        )
+        weekly_data = [
+            {"week": ws["week"].strftime("%Y-%m-%d"), "count": ws["count"]}
+            for ws in weekly_submissions
+        ]
+
         return Response({
             'total_participants': total_participants,
             'total_submissions': total_submissions,
             'total_scores': total_scores,
             'average_score': avg_score,
             'judge_activity': list(judge_activity),
+            'weekly_submissions': weekly_data,
         })
 
 class ExportScoresCSV(APIView):

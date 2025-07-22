@@ -16,6 +16,15 @@ const ProfessionalJudgeDashboard = () => {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [showScoringModal, setShowScoringModal] = useState(false);
 
+  // Radio button scoring options
+  const scoreOptions = [
+    { value: 20, label: 'Poor', description: 'Needs significant improvement', color: '#dc2626', bg: 'rgba(239, 68, 68, 0.1)' },
+    { value: 40, label: 'Fair', description: 'Below expectations', color: '#ea580c', bg: 'rgba(249, 115, 22, 0.1)' },
+    { value: 60, label: 'Good', description: 'Meets expectations', color: '#d97706', bg: 'rgba(245, 158, 11, 0.1)' },
+    { value: 80, label: 'Very Good', description: 'Exceeds expectations', color: '#0369a1', bg: 'rgba(59, 130, 246, 0.1)' },
+    { value: 100, label: 'Excellent', description: 'Outstanding work', color: '#059669', bg: 'rgba(16, 185, 129, 0.1)' }
+  ];
+
   useEffect(() => {
     fetchCompetitions();
   }, []);
@@ -75,7 +84,7 @@ const ProfessionalJudgeDashboard = () => {
       const key = `${submission.id}_${rubric.id}`;
       const existing = scores[key];
       newFormState[key] = {
-        score: existing ? existing.score : 50,
+        score: existing ? existing.score : null,
         comment: existing ? existing.comment : '',
       };
     });
@@ -100,18 +109,21 @@ const ProfessionalJudgeDashboard = () => {
         const state = formState[key];
         const existingScore = scores[key];
         
-        const payload = {
-          competition_id: selectedCompetition.id,
-          submission: selectedSubmission.id,
-          rubric: rubric.id,
-          score: state.score,
-          comment: state.comment,
-        };
-        
-        if (existingScore) {
-          await api.put(`/api/scoring/scores/${existingScore.id}/`, payload);
-        } else {
-          await api.post('/api/scoring/scores/', payload);
+        // Only submit if a score is selected
+        if (state.score !== null) {
+          const payload = {
+            competition_id: selectedCompetition.id,
+            submission: selectedSubmission.id,
+            rubric: rubric.id,
+            score: state.score,
+            comment: state.comment,
+          };
+          
+          if (existingScore) {
+            await api.put(`/api/scoring/scores/${existingScore.id}/`, payload);
+          } else {
+            await api.post('/api/scoring/scores/', payload);
+          }
         }
       }
       
@@ -380,7 +392,7 @@ const ProfessionalJudgeDashboard = () => {
       background: 'white',
       borderRadius: '24px',
       width: '100%',
-      maxWidth: '800px',
+      maxWidth: '900px',
       maxHeight: '90vh',
       overflow: 'auto',
       animation: 'slideUp 0.3s ease-out'
@@ -467,29 +479,116 @@ const ProfessionalJudgeDashboard = () => {
       fontSize: '18px',
       fontWeight: '700',
       color: '#1e293b',
-      marginBottom: '24px'
+      marginBottom: '24px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
+    },
+    
+    quickTip: {
+      background: '#ecfdf5',
+      border: '1px solid #34d399',
+      borderRadius: '12px',
+      padding: '16px',
+      marginBottom: '24px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    },
+    
+    tipIcon: {
+      fontSize: '20px'
+    },
+    
+    tipText: {
+      fontSize: '14px',
+      color: '#059669',
+      fontWeight: '500'
     },
     
     rubricCard: {
       background: '#f8fafc',
-      borderRadius: '12px',
-      padding: '20px',
-      marginBottom: '20px',
+      borderRadius: '16px',
+      padding: '24px',
+      marginBottom: '24px',
       border: '1px solid #e2e8f0'
     },
     
     rubricName: {
-      fontSize: '16px',
-      fontWeight: '600',
+      fontSize: '18px',
+      fontWeight: '700',
       color: '#1e293b',
-      marginBottom: '12px'
+      marginBottom: '16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
     },
     
-    scoreInputGroup: {
-      marginBottom: '16px'
+    rubricIcon: {
+      fontSize: '20px'
     },
     
-    scoreLabel: {
+    scoreOptionsGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+      gap: '12px',
+      marginBottom: '20px'
+    },
+    
+    radioOption: {
+      position: 'relative'
+    },
+    
+    radioInput: {
+      position: 'absolute',
+      opacity: 0,
+      width: 0,
+      height: 0
+    },
+    
+    radioLabel: {
+      display: 'block',
+      padding: '16px',
+      borderRadius: '12px',
+      border: '2px solid #e2e8f0',
+      background: 'white',
+      transition: 'all 0.2s ease',
+      textAlign: 'center',
+      cursor: 'pointer',
+      position: 'relative',
+      userSelect: 'none'
+    },
+    
+    radioLabelSelected: {
+      borderColor: '#34d399',
+      background: 'rgba(52, 211, 153, 0.05)',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 12px rgba(52, 211, 153, 0.15)'
+    },
+    
+    optionIcon: {
+      fontSize: '24px',
+      marginBottom: '8px',
+      display: 'block'
+    },
+    
+    optionLabel: {
+      fontSize: '16px',
+      fontWeight: '700',
+      marginBottom: '4px'
+    },
+    
+    optionDescription: {
+      fontSize: '12px',
+      opacity: 0.7,
+      lineHeight: '1.3'
+    },
+    
+    commentSection: {
+      marginTop: '20px'
+    },
+    
+    commentLabel: {
       display: 'block',
       fontSize: '14px',
       fontWeight: '600',
@@ -497,37 +596,13 @@ const ProfessionalJudgeDashboard = () => {
       marginBottom: '8px'
     },
     
-    scoreInputContainer: {
-      position: 'relative'
-    },
-    
-    scoreInput: {
-      width: '100%',
-      padding: '12px 80px 12px 16px',
-      borderRadius: '8px',
-      border: '2px solid #e5e7eb',
-      fontSize: '16px',
-      transition: 'all 0.2s ease'
-    },
-    
-    scoreIndicator: {
-      position: 'absolute',
-      right: '12px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      padding: '4px 8px',
-      borderRadius: '6px',
-      fontSize: '12px',
-      fontWeight: '600'
-    },
-    
     commentTextarea: {
       width: '100%',
       padding: '12px 16px',
-      borderRadius: '8px',
+      borderRadius: '12px',
       border: '2px solid #e5e7eb',
       fontSize: '14px',
-      minHeight: '80px',
+      minHeight: '100px',
       resize: 'vertical',
       fontFamily: 'inherit',
       transition: 'all 0.2s ease'
@@ -543,7 +618,7 @@ const ProfessionalJudgeDashboard = () => {
     },
     
     btn: {
-      padding: '12px 24px',
+      padding: '14px 28px',
       borderRadius: '12px',
       fontSize: '16px',
       fontWeight: '600',
@@ -644,6 +719,17 @@ const ProfessionalJudgeDashboard = () => {
     if (submissionScores.length === 0) return 'Not Scored';
     if (submissionScores.length < rubrics.length) return 'Partially Scored';
     return 'Completed';
+  };
+
+  const getScoreOptionIcon = (value) => {
+    switch(value) {
+      case 20: return '😞';
+      case 40: return '😐';
+      case 60: return '😊';
+      case 80: return '😃';
+      case 100: return '🎉';
+      default: return '⭐';
+    }
   };
 
   if (loading) {
@@ -903,47 +989,100 @@ const ProfessionalJudgeDashboard = () => {
 
                 {/* Scoring Section */}
                 <div style={styles.scoringSection}>
-                  <h3 style={styles.scoringTitle}>Evaluation Criteria</h3>
+                  <h3 style={styles.scoringTitle}>
+                    <span>📊</span>
+                    Evaluation Criteria
+                  </h3>
+                  
+                  <div style={styles.quickTip}>
+                    <span style={styles.tipIcon}>💡</span>
+                    <span style={styles.tipText}>
+                      Simply click on the rating that best represents your evaluation. Quick and easy!
+                    </span>
+                  </div>
                   
                   {rubrics.map(rubric => {
                     const key = `${selectedSubmission.id}_${rubric.id}`;
-                    const currentScore = formState[key]?.score || 50;
-                    const indicator = getScoreIndicator(currentScore);
+                    const currentScore = formState[key]?.score;
                     
                     return (
                       <div key={rubric.id} style={styles.rubricCard}>
-                        <h4 style={styles.rubricName}>{rubric.name}</h4>
+                        <h4 style={styles.rubricName}>
+                          <span style={styles.rubricIcon}>🎯</span>
+                          {rubric.name}
+                        </h4>
                         
-                        <div style={styles.scoreInputGroup}>
-                          <label style={styles.scoreLabel}>
-                            Score (0-100): {currentScore}
-                          </label>
-                          <div style={styles.scoreInputContainer}>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              style={styles.scoreInput}
-                              value={currentScore}
-                              onChange={(e) => handleScoreChange(
-                                selectedSubmission.id, 
-                                rubric.id, 
-                                'score', 
-                                parseInt(e.target.value)
-                              )}
-                            />
-                            <div style={{
-                              ...styles.scoreIndicator,
-                              color: indicator.color,
-                              background: indicator.bg
-                            }}>
-                              {indicator.text}
-                            </div>
-                          </div>
+                        <div style={styles.scoreOptionsGrid}>
+                          {scoreOptions.map(option => {
+                            const isSelected = currentScore === option.value;
+                            const radioId = `score_${rubric.id}_${option.value}`;
+                            return (
+                              <div key={option.value} style={styles.radioOption}>
+                                <input
+                                  type="radio"
+                                  id={radioId}
+                                  name={`score_${rubric.id}`}
+                                  value={option.value}
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    console.log('Radio changed:', e.target.value); // Debug log
+                                    handleScoreChange(
+                                      selectedSubmission.id, 
+                                      rubric.id, 
+                                      'score', 
+                                      parseInt(e.target.value)
+                                    );
+                                  }}
+                                  style={styles.radioInput}
+                                />
+                                <label 
+                                  htmlFor={radioId}
+                                  style={{
+                                    ...styles.radioLabel,
+                                    ...(isSelected ? styles.radioLabelSelected : {}),
+                                    borderColor: isSelected ? option.color : '#e2e8f0',
+                                    background: isSelected ? option.bg : 'white',
+                                    color: isSelected ? option.color : '#374151'
+                                  }}
+                                  onClick={() => {
+                                    console.log('Label clicked:', option.value); // Debug log
+                                    handleScoreChange(
+                                      selectedSubmission.id, 
+                                      rubric.id, 
+                                      'score', 
+                                      option.value
+                                    );
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!isSelected) {
+                                      e.target.style.borderColor = option.color;
+                                      e.target.style.background = option.bg;
+                                      e.target.style.transform = 'translateY(-2px)';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!isSelected) {
+                                      e.target.style.borderColor = '#e2e8f0';
+                                      e.target.style.background = 'white';
+                                      e.target.style.transform = 'translateY(0)';
+                                    }
+                                  }}
+                                >
+                                  <span style={styles.optionIcon}>
+                                    {getScoreOptionIcon(option.value)}
+                                  </span>
+                                  <div style={styles.optionLabel}>{option.label}</div>
+                                  <div style={styles.optionDescription}>{option.description}</div>
+                                </label>
+                              </div>
+                            );
+                          })}
                         </div>
                         
-                        <div style={styles.scoreInputGroup}>
-                          <label style={styles.scoreLabel}>Comments</label>
+                        <div style={styles.commentSection}>
+                          <label style={styles.commentLabel}>
+                            💬 Comments (optional)
+                          </label>
                           <textarea
                             style={styles.commentTextarea}
                             value={formState[key]?.comment || ''}
@@ -975,7 +1114,7 @@ const ProfessionalJudgeDashboard = () => {
                   style={{...styles.btn, ...styles.btnSecondary}}
                   onClick={() => setShowScoringModal(false)}
                 >
-                  Cancel
+                  ❌ Cancel
                 </button>
                 <button 
                   style={{...styles.btn, ...styles.btnPrimary}}

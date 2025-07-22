@@ -76,6 +76,31 @@ const ProfessionalAdminDashboard = () => {
     },
   };
 
+  // Chart data for weekly submission trends
+  const weeklyLabels = stats?.weekly_submissions?.map(w => w.week) || [];
+  const weeklyCounts = stats?.weekly_submissions?.map(w => w.count) || [];
+  const weeklyChartData = {
+    labels: weeklyLabels,
+    datasets: [
+      {
+        label: 'Submissions',
+        data: weeklyCounts,
+        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+        borderRadius: 6,
+      },
+    ],
+  };
+  const weeklyChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Weekly Submission Activity' },
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } },
+    },
+  };
+
   const styles = {
     dashboard: {
       minHeight: '100vh',
@@ -663,9 +688,13 @@ const ProfessionalAdminDashboard = () => {
                 <p style={styles.chartSubtitle}>Weekly submission activity</p>
               </div>
             </div>
-            <div style={styles.chartPlaceholder}>
-              📈 Chart visualization would go here
-            </div>
+            {weeklyLabels.length > 0 ? (
+              <Bar data={weeklyChartData} options={weeklyChartOptions} height={120} />
+            ) : (
+              <div style={styles.chartPlaceholder}>
+                No weekly submission data available.
+              </div>
+            )}
           </div>
 
           <div style={styles.activityCard}>
